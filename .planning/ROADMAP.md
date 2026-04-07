@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — 프로젝트 초기화, SQLite DB 스키마, 클라이언트/서비스 쿼리 함수
+- [x] 01-01-PLAN.md — 프로젝트 초기화, SQLite DB 스키마, 클라이언트/서비스 쿼리 함수
 - [ ] 01-02-PLAN.md — 안전장치 (교차 오염 방지, 가격 검증, Gmail 인코딩 치환)
 - [ ] 01-03-PLAN.md — 파이프라인 상태 관리 (JSON 기반 딜 추적, 세션 로더)
 
