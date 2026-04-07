@@ -110,8 +110,21 @@ describe('Database Schema', () => {
     expect(results[0].serviceName).toBe('카페 침투 바이럴');
   });
 
-  it('should have WAL mode active on connection', () => {
-    const mode = sqlite.pragma('journal_mode');
+  it('should have WAL mode active on file-based connection', () => {
+    // In-memory databases report 'memory' for journal_mode.
+    // WAL mode only works on file-based databases.
+    // Test with a temp file-based DB to verify WAL pragma works.
+    const { resolve } = require('path');
+    const { mkdirSync, existsSync, unlinkSync } = require('fs');
+    const os = require('os');
+    const tmpPath = resolve(os.tmpdir(), `test-wal-${Date.now()}.db`);
+    const fileSqlite = new Database(tmpPath);
+    fileSqlite.pragma('journal_mode = WAL');
+    const mode = fileSqlite.pragma('journal_mode');
     expect(mode[0].journal_mode).toBe('wal');
+    fileSqlite.close();
+    try { unlinkSync(tmpPath); } catch {}
+    try { unlinkSync(tmpPath + '-wal'); } catch {}
+    try { unlinkSync(tmpPath + '-shm'); } catch {}
   });
 });
