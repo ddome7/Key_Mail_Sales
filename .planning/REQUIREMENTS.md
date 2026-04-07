@@ -12,7 +12,7 @@
 - [x] **FOUND-03**: 이메일 작성 시 대상 클라이언트 외 다른 클라이언트의 정보(단가/내부전략)가 포함되지 않도록 교차 오염을 방지한다
 - [x] **FOUND-04**: 이메일에 포함된 금액/단가가 서비스 DB의 실제 데이터와 일치하는지 자동 검증한다
 - [x] **FOUND-05**: Gmail 발송 시 깨지는 특수문자(└, → 등)를 안전 문자로 자동 치환한다
-- [ ] **FOUND-06**: 세일즈 파이프라인 상태(문의접수/제안중/계약진행/운영중/휴면)를 추적하고 세션 간 유지한다
+- [x] **FOUND-06**: 세일즈 파이프라인 상태(문의접수/제안중/계약진행/운영중/휴면)를 추적하고 세션 간 유지한다
 - [ ] **FOUND-07**: 매 소통 후 클라이언트 DB를 자동 업데이트한다 (새 정보, 단가 변경, 담당자 변경 등)
 
 ### Market Research (시장조사)
@@ -105,7 +105,7 @@
 | FOUND-03 | Phase 1 | Complete |
 | FOUND-04 | Phase 1 | Complete |
 | FOUND-05 | Phase 1 | Complete |
-| FOUND-06 | Phase 1 | Pending |
+| FOUND-06 | Phase 1 | Complete |
 | FOUND-07 | Phase 2 | Pending |
 | RSCH-01 | Phase 2 | Pending |
 | RSCH-02 | Phase 2 | Pending |
