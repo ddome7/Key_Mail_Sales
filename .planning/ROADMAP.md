@@ -30,11 +30,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A사 이메일 작성 시 B사의 단가/내부전략이 절대 포함되지 않는다 (교차 오염 방지)
   4. Gmail 발송 시 특수문자(└, → 등)가 깨지지 않고 안전 문자로 치환된다
   5. 클라이언트의 파이프라인 상태(문의접수~휴면)가 세션 간 유지된다
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md — 프로젝트 초기화, SQLite DB 스키마, 클라이언트/서비스 쿼리 함수
+- [ ] 01-02-PLAN.md — 안전장치 (교차 오염 방지, 가격 검증, Gmail 인코딩 치환)
+- [ ] 01-03-PLAN.md — 파이프라인 상태 관리 (JSON 기반 딜 추적, 세션 로더)
 
 ### Phase 2: Workflow A (신규 문의 처리)
 **Goal**: 대표님이 신규 문의를 전달하면 봇이 시장조사 -> 맞춤 1차 이메일 작성 -> 승인까지 end-to-end로 처리하여, 대표님은 최종 확인만 하면 된다
@@ -103,7 +104,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/0 | Not started | - |
+| 1. Foundation | 0/3 | Planning complete | - |
 | 2. Workflow A | 0/0 | Not started | - |
 | 3. Workflow B | 0/0 | Not started | - |
 | 4. Workflow C | 0/0 | Not started | - |
