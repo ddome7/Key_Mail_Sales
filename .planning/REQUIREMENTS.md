@@ -13,14 +13,14 @@
 - [x] **FOUND-04**: 이메일에 포함된 금액/단가가 서비스 DB의 실제 데이터와 일치하는지 자동 검증한다
 - [x] **FOUND-05**: Gmail 발송 시 깨지는 특수문자(└, → 등)를 안전 문자로 자동 치환한다
 - [x] **FOUND-06**: 세일즈 파이프라인 상태(문의접수/제안중/계약진행/운영중/휴면)를 추적하고 세션 간 유지한다
-- [ ] **FOUND-07**: 매 소통 후 클라이언트 DB를 자동 업데이트한다 (새 정보, 단가 변경, 담당자 변경 등)
+- [x] **FOUND-07**: 매 소통 후 클라이언트 DB를 자동 업데이트한다 (새 정보, 단가 변경, 담당자 변경 등)
 
 ### Market Research (시장조사)
 
-- [ ] **RSCH-01**: 문의 회사의 업종/주요 상품/서비스를 웹 검색으로 조사할 수 있다
-- [ ] **RSCH-02**: 문의 회사가 실존하는 회사인지 확인할 수 있다
-- [ ] **RSCH-03**: 문의 회사의 현재 마케팅 활동(SNS, 블로그, 광고 등)을 조사할 수 있다
-- [ ] **RSCH-04**: 시장조사 결과를 구조화된 형태로 정리하여 이메일 작성에 활용할 수 있다
+- [x] **RSCH-01**: 문의 회사의 업종/주요 상품/서비스를 웹 검색으로 조사할 수 있다
+- [x] **RSCH-02**: 문의 회사가 실존하는 회사인지 확인할 수 있다
+- [x] **RSCH-03**: 문의 회사의 현재 마케팅 활동(SNS, 블로그, 광고 등)을 조사할 수 있다
+- [x] **RSCH-04**: 시장조사 결과를 구조화된 형태로 정리하여 이메일 작성에 활용할 수 있다
 
 ### Email Composition (이메일 작성)
 
@@ -106,11 +106,11 @@
 | FOUND-04 | Phase 1 | Complete |
 | FOUND-05 | Phase 1 | Complete |
 | FOUND-06 | Phase 1 | Complete |
-| FOUND-07 | Phase 2 | Pending |
-| RSCH-01 | Phase 2 | Pending |
-| RSCH-02 | Phase 2 | Pending |
-| RSCH-03 | Phase 2 | Pending |
-| RSCH-04 | Phase 2 | Pending |
+| FOUND-07 | Phase 2 | Complete |
+| RSCH-01 | Phase 2 | Complete |
+| RSCH-02 | Phase 2 | Complete |
+| RSCH-03 | Phase 2 | Complete |
+| RSCH-04 | Phase 2 | Complete |
 | EMAIL-01 | Phase 2 | Pending |
 | EMAIL-02 | Phase 2 | Complete |
 | EMAIL-03 | Phase 2 | Complete |
