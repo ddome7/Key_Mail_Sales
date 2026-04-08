@@ -28,12 +28,12 @@
 - [x] **EMAIL-02**: v4 ULTRA 이메일 자동 분류 엔진(4단계 판단 트리)을 적용하여 상황에 맞는 전략(A~L)을 자동 선택한다
 - [x] **EMAIL-03**: 톤 캘리브레이션 5단계를 상대방/상황에 맞게 자동 적용한다
 - [x] **EMAIL-04**: 업종별 플레이북(F&B/뷰티/주류/IT/가구/해외)을 자동 적용한다
-- [ ] **EMAIL-05**: 이메일 제목을 상황별 형식([퍼즐/최영록] [클라이언트] _ [내용] _ [YYMMDD])에 맞게 생성한다
+- [x] **EMAIL-05**: 이메일 제목을 상황별 형식([퍼즐/최영록] [클라이언트] _ [내용] _ [YYMMDD])에 맞게 생성한다
 - [x] **EMAIL-06**: 구조화 기호 규칙(■●★◎※)을 정확히 적용한다
 - [x] **EMAIL-07**: 서명(감사합니다. / 퍼즐코퍼레이션 / 최 영 록 / 드림.)을 정확히 포함한다
 - [ ] **EMAIL-08**: Gmail HTML 형식(text/html)으로 드래프트를 생성하고 CC(PM@puzl.co.kr, leader@puzl.co.kr)를 자동 포함한다
 - [ ] **EMAIL-09**: 기존 이메일 스레드에 답장할 때 threadId를 정확히 지정한다
-- [ ] **EMAIL-10**: 소개 자료 링크를 URL 텍스트 노출 없이 하이퍼링크로 처리한다
+- [x] **EMAIL-10**: 소개 자료 링크를 URL 텍스트 노출 없이 하이퍼링크로 처리한다
 - [x] **EMAIL-11**: 발송 전 품질 체크리스트(SECTION 20) 11개 필수 항목을 자동 검증한다
 
 ### Call Processing (통화 처리)
@@ -47,7 +47,7 @@
 
 - [ ] **APPR-01**: 봇이 작성한 이메일 초안을 Gmail 임시저장으로 생성하여 대표님이 확인할 수 있다
 - [ ] **APPR-02**: 대표님이 수정 요청 시 수정 사항을 반영하여 새 드래프트를 생성한다
-- [ ] **APPR-03**: 이메일에 금액/견적이 포함된 경우 HIGH 리스크로 분류하여 반드시 수동 확인을 요청한다
+- [x] **APPR-03**: 이메일에 금액/견적이 포함된 경우 HIGH 리스크로 분류하여 반드시 수동 확인을 요청한다
 
 ### Follow-up (팔로업)
 
@@ -65,9 +65,9 @@
 
 ### Objection Handling (반론 대응)
 
-- [ ] **OBJC-01**: 반론/거절 대응 플레이북(5대 시나리오)을 상황에 맞게 자동 적용한다
-- [ ] **OBJC-02**: 클라이언트 생애주기(STAGE 1~5)에 따라 이메일 톤과 전략을 자동 조절한다
-- [ ] **OBJC-03**: 서비스 추천 매트릭스(예산 티어 + 업종)를 활용하여 최적 믹스안을 자동 제안한다
+- [x] **OBJC-01**: 반론/거절 대응 플레이북(5대 시나리오)을 상황에 맞게 자동 적용한다
+- [x] **OBJC-02**: 클라이언트 생애주기(STAGE 1~5)에 따라 이메일 톤과 전략을 자동 조절한다
+- [x] **OBJC-03**: 서비스 추천 매트릭스(예산 티어 + 업종)를 활용하여 최적 믹스안을 자동 제안한다
 
 ## v2 Requirements
 
@@ -115,12 +115,12 @@
 | EMAIL-02 | Phase 2 | Complete |
 | EMAIL-03 | Phase 2 | Complete |
 | EMAIL-04 | Phase 2 | Complete |
-| EMAIL-05 | Phase 2 | Pending |
+| EMAIL-05 | Phase 2 | Complete |
 | EMAIL-06 | Phase 2 | Complete |
 | EMAIL-07 | Phase 2 | Complete |
 | EMAIL-08 | Phase 2 | Pending |
 | EMAIL-09 | Phase 2 | Pending |
-| EMAIL-10 | Phase 2 | Pending |
+| EMAIL-10 | Phase 2 | Complete |
 | EMAIL-11 | Phase 2 | Complete |
 | CALL-01 | Phase 3 | Pending |
 | CALL-02 | Phase 3 | Pending |
@@ -128,7 +128,7 @@
 | CALL-04 | Phase 3 | Pending |
 | APPR-01 | Phase 2 | Pending |
 | APPR-02 | Phase 2 | Pending |
-| APPR-03 | Phase 2 | Pending |
+| APPR-03 | Phase 2 | Complete |
 | FLLW-01 | Phase 4 | Pending |
 | FLLW-02 | Phase 4 | Pending |
 | FLLW-03 | Phase 4 | Pending |
@@ -137,9 +137,9 @@
 | LRNG-02 | Phase 5 | Pending |
 | LRNG-03 | Phase 5 | Pending |
 | LRNG-04 | Phase 5 | Pending |
-| OBJC-01 | Phase 2 | Pending |
-| OBJC-02 | Phase 2 | Pending |
-| OBJC-03 | Phase 2 | Pending |
+| OBJC-01 | Phase 2 | Complete |
+| OBJC-02 | Phase 2 | Complete |
+| OBJC-03 | Phase 2 | Complete |
 
 **Coverage:**
 - v1 requirements: 40 total
