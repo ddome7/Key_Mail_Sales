@@ -25,16 +25,16 @@
 ### Email Composition (이메일 작성)
 
 - [ ] **EMAIL-01**: 신규 문의 시 시장조사 결과 + 문의 내용을 반영하여 맞춤 1차 이메일을 작성한다 (Workflow A)
-- [ ] **EMAIL-02**: v4 ULTRA 이메일 자동 분류 엔진(4단계 판단 트리)을 적용하여 상황에 맞는 전략(A~L)을 자동 선택한다
-- [ ] **EMAIL-03**: 톤 캘리브레이션 5단계를 상대방/상황에 맞게 자동 적용한다
-- [ ] **EMAIL-04**: 업종별 플레이북(F&B/뷰티/주류/IT/가구/해외)을 자동 적용한다
+- [x] **EMAIL-02**: v4 ULTRA 이메일 자동 분류 엔진(4단계 판단 트리)을 적용하여 상황에 맞는 전략(A~L)을 자동 선택한다
+- [x] **EMAIL-03**: 톤 캘리브레이션 5단계를 상대방/상황에 맞게 자동 적용한다
+- [x] **EMAIL-04**: 업종별 플레이북(F&B/뷰티/주류/IT/가구/해외)을 자동 적용한다
 - [ ] **EMAIL-05**: 이메일 제목을 상황별 형식([퍼즐/최영록] [클라이언트] _ [내용] _ [YYMMDD])에 맞게 생성한다
-- [ ] **EMAIL-06**: 구조화 기호 규칙(■●★◎※)을 정확히 적용한다
-- [ ] **EMAIL-07**: 서명(감사합니다. / 퍼즐코퍼레이션 / 최 영 록 / 드림.)을 정확히 포함한다
+- [x] **EMAIL-06**: 구조화 기호 규칙(■●★◎※)을 정확히 적용한다
+- [x] **EMAIL-07**: 서명(감사합니다. / 퍼즐코퍼레이션 / 최 영 록 / 드림.)을 정확히 포함한다
 - [ ] **EMAIL-08**: Gmail HTML 형식(text/html)으로 드래프트를 생성하고 CC(PM@puzl.co.kr, leader@puzl.co.kr)를 자동 포함한다
 - [ ] **EMAIL-09**: 기존 이메일 스레드에 답장할 때 threadId를 정확히 지정한다
 - [ ] **EMAIL-10**: 소개 자료 링크를 URL 텍스트 노출 없이 하이퍼링크로 처리한다
-- [ ] **EMAIL-11**: 발송 전 품질 체크리스트(SECTION 20) 11개 필수 항목을 자동 검증한다
+- [x] **EMAIL-11**: 발송 전 품질 체크리스트(SECTION 20) 11개 필수 항목을 자동 검증한다
 
 ### Call Processing (통화 처리)
 
@@ -112,16 +112,16 @@
 | RSCH-03 | Phase 2 | Pending |
 | RSCH-04 | Phase 2 | Pending |
 | EMAIL-01 | Phase 2 | Pending |
-| EMAIL-02 | Phase 2 | Pending |
-| EMAIL-03 | Phase 2 | Pending |
-| EMAIL-04 | Phase 2 | Pending |
+| EMAIL-02 | Phase 2 | Complete |
+| EMAIL-03 | Phase 2 | Complete |
+| EMAIL-04 | Phase 2 | Complete |
 | EMAIL-05 | Phase 2 | Pending |
-| EMAIL-06 | Phase 2 | Pending |
-| EMAIL-07 | Phase 2 | Pending |
+| EMAIL-06 | Phase 2 | Complete |
+| EMAIL-07 | Phase 2 | Complete |
 | EMAIL-08 | Phase 2 | Pending |
 | EMAIL-09 | Phase 2 | Pending |
 | EMAIL-10 | Phase 2 | Pending |
-| EMAIL-11 | Phase 2 | Pending |
+| EMAIL-11 | Phase 2 | Complete |
 | CALL-01 | Phase 3 | Pending |
 | CALL-02 | Phase 3 | Pending |
 | CALL-03 | Phase 3 | Pending |
