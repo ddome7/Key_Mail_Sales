@@ -47,13 +47,14 @@ Plans:
   3. 대표님이 수정 요청하면 반영된 새 드래프트가 생성되고, 금액 포함 시 HIGH 리스크 경고가 표시된다
   4. 매 소통 후 클라이언트 DB가 새 정보로 자동 업데이트된다
   5. 반론/거절 상황에서 플레이북이 자동 적용되고, 생애주기/예산에 맞는 서비스 믹스가 제안된다
-**Plans**: TBD
-**UI hint**: yes
+**Plans:** 5 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [ ] 02-01-PLAN.md — 공유 타입 정의 + v4 ULTRA 선택적 섹션 로더
+- [ ] 02-02-PLAN.md — 시장조사 파이프라인 + 클라이언트 DB 자동 업데이트
+- [ ] 02-03-PLAN.md — 분류 엔진 + 품질 체크리스트 + 반론 대응/생애주기/서비스 추천
+- [ ] 02-04-PLAN.md — 이메일 본문 조합 + Gmail MCP 드래프트 생성
+- [ ] 02-05-PLAN.md — Workflow A 오케스트레이터 (end-to-end 파이프라인)
 
 ### Phase 3: Workflow B (통화 후속 처리)
 **Goal**: 대표님이 유선통화 후 슬랙에 올라온 통화요약을 봇이 읽고, 액션아이템을 추출하여 기존 스레드 맥락을 반영한 후속 이메일을 자동 생성한다
@@ -105,7 +106,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete    | 2026-04-07 |
-| 2. Workflow A | 0/0 | Not started | - |
+| 2. Workflow A | 0/5 | Planned | - |
 | 3. Workflow B | 0/0 | Not started | - |
 | 4. Workflow C | 0/0 | Not started | - |
 | 5. Learning Loop | 0/0 | Not started | - |
