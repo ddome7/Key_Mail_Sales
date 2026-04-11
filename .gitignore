@@ -3,3 +3,7 @@ dist/
 data/sales.db
 data/sales.db-wal
 data/sales.db-shm
+.env
+.env.local
+*.env
+scripts/_uat-*
