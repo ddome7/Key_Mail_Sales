@@ -376,11 +376,11 @@ export async function runWorkflowB(
       // ─ Step 9: Gmail 드래프트 생성 ──────────────────────
       const draftResult = await createDraft(emailDraft, deps.gmailTool);
 
-      // ─ Step 9.5: touchpoints('email') 기록 (비치명적) ──
+      // ─ Step 9.5: touchpoints('email_sent') 기록 (비치명적) ──
       try {
         deps.touchpointQueries.createTouchpoint({
           clientId: client.id,
-          type: 'email',
+          type: 'email_sent',
           sourceId: draftResult.threadId ?? draftResult.draftId,
           summary: `[드래프트] ${emailDraft.subject}`,
           metadata: {

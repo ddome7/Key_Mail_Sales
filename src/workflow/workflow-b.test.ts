@@ -292,12 +292,12 @@ describe('runWorkflowB — 성공 경로', () => {
     expect(briefingCall.source).toBe('ixio');
     expect(briefingCall.summary).toContain('동반성장위원회');
 
-    // touchpoints: call + email = 2건
+    // touchpoints: call + email_sent = 2건
     expect(deps.touchpointQueries.createTouchpoint).toHaveBeenCalledTimes(2);
     const tpCalls = (deps.touchpointQueries.createTouchpoint as any).mock.calls;
     expect(tpCalls[0][0].type).toBe('call');
     expect(tpCalls[0][0].sourceId).toBe('1712000000.000001');
-    expect(tpCalls[1][0].type).toBe('email');
+    expect(tpCalls[1][0].type).toBe('email_sent');
     expect(tpCalls[1][0].metadata.isReply).toBe(true);
 
     // createDraft가 THREAD123으로 호출됨 (Pitfall 4 — 기존 스레드 유지)

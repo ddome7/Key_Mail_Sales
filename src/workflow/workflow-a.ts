@@ -188,7 +188,7 @@ export async function runWorkflowA(
     try {
       deps.touchpointQueries.createTouchpoint({
         clientId: client.id,
-        type: 'email',
+        type: 'email_sent',
         sourceId: draftResult.threadId ?? draftResult.draftId,
         summary: `[드래프트] ${emailDraft.subject}`,
         metadata: { draftId: draftResult.draftId, source: 'workflow-a' },
@@ -335,7 +335,7 @@ export async function handleRevisionRequest(
       try {
         deps.touchpointQueries.createTouchpoint({
           clientId: client.id,
-          type: 'email',
+          type: 'email_sent',
           sourceId: revisionResult.draftId,
           summary: `[드래프트-수정] ${revisedDraft.subject}`,
           metadata: {

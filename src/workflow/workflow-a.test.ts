@@ -248,7 +248,7 @@ describe('D-15: touchpoint 기록 후방 호환', () => {
     expect(result.draftId).toBeDefined();
   });
 
-  it('touchpointQueries 주입 시 runWorkflowA가 email touchpoint를 기록한다', async () => {
+  it('touchpointQueries 주입 시 runWorkflowA가 email_sent touchpoint를 기록한다', async () => {
     const tp = createTouchpointMock();
     const deps = createDepsWithClient(tp);
     const input = createMockInput();
@@ -260,7 +260,7 @@ describe('D-15: touchpoint 기록 후방 호환', () => {
     expect(result.success).toBe(true);
     expect(tp.createTouchpoint).toHaveBeenCalledOnce();
     const call = tp.createTouchpoint.mock.calls[0][0];
-    expect(call.type).toBe('email');
+    expect(call.type).toBe('email_sent');
     expect(call.clientId).toBe(42);
     // sourceId는 draftResult.threadId 우선, 없으면 draftId fallback
     expect(['thread_456', 'draft_123']).toContain(call.sourceId);
@@ -269,7 +269,7 @@ describe('D-15: touchpoint 기록 후방 호환', () => {
     expect(typeof call.occurredAt).toBe('string');
   });
 
-  it('touchpointQueries 주입 시 handleRevisionRequest도 email touchpoint를 기록한다 (revision=true)', async () => {
+  it('touchpointQueries 주입 시 handleRevisionRequest도 email_sent touchpoint를 기록한다 (revision=true)', async () => {
     const tp = createTouchpointMock();
     const gmailTool = vi.fn().mockResolvedValue({
       id: 'draft_revised_789',
@@ -292,7 +292,7 @@ describe('D-15: touchpoint 기록 후방 호환', () => {
     expect(result.success).toBe(true);
     expect(tp.createTouchpoint).toHaveBeenCalledOnce();
     const call = tp.createTouchpoint.mock.calls[0][0];
-    expect(call.type).toBe('email');
+    expect(call.type).toBe('email_sent');
     expect(call.clientId).toBe(42);
     expect(call.metadata).toMatchObject({ revision: true, source: 'workflow-a' });
   });
