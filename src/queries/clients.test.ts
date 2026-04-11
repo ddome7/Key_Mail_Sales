@@ -23,6 +23,8 @@ function createTestDb() {
       communication_style TEXT,
       stage TEXT DEFAULT 'PROSPECT',
       last_contact_date TEXT,
+      followup_paused INTEGER DEFAULT 0 NOT NULL,
+      followup_paused_reason TEXT,
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     );
