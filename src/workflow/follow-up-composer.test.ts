@@ -293,13 +293,14 @@ describe('buildFollowUpPrompt — 프롬프트 조립', () => {
       expect(combined).toContain('이의선');
     });
 
-    it('다른 클라이언트 정보(타 회사명)가 등장하지 않는다', () => {
-      // 타 회사 정보가 주입될 경로가 아예 없음을 확인
+    it('다른 클라이언트 데이터가 userMessage에 혼입되지 않는다', () => {
+      // userMessage(데이터 영역)에 다른 회사 이름/이메일이 없는지 검증.
+      // system 프롬프트의 "경쟁사 언급 금지" 경고는 지시문이므로 제외.
       const result = buildFollowUpPrompt(baseParams);
-      const combined = result.system + '\n' + result.userMessage;
 
-      expect(combined).not.toContain('경쟁사');
-      expect(combined).not.toContain('타클라이언트');
+      expect(result.userMessage).not.toContain('경쟁사');
+      expect(result.userMessage).not.toContain('타클라이언트');
+      expect(result.userMessage).not.toContain('다른 고객');
     });
 
     it('system 프롬프트에 "대상 회사 외 언급 금지" 경고 포함', () => {
