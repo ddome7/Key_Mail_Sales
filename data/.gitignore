@@ -1,0 +1,4 @@
+sales.db
+sales.db-shm
+sales.db-wal
+sales.db.backup-*
