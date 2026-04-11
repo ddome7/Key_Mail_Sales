@@ -23,6 +23,8 @@ function createTestDb() {
       communication_style TEXT,
       stage TEXT DEFAULT 'PROSPECT',
       last_contact_date TEXT,
+      followup_paused INTEGER DEFAULT 0 NOT NULL,
+      followup_paused_reason TEXT,
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     );
@@ -257,5 +259,183 @@ describe('Client Queries — Phase 3 Plan 02 확장', () => {
     it('DB가 비어 있으면 빈 배열을 반환한다', () => {
       expect(queries.getAllCompanyNames()).toEqual([]);
     });
+  });
+});
+
+// ─── Phase 4 Plan 04-01 확장: 팔로업 차단 + 활성 클라이언트 조회 ────
+describe('setFollowupPause (Phase 4 D-20/D-21)', () => {
+  let queries: ReturnType<typeof createClientQueries>;
+  let db: ReturnType<typeof createTestDb>['db'];
+
+  beforeEach(() => {
+    const setup = createTestDb();
+    db = setup.db;
+    queries = createClientQueries(db);
+    db.insert(clients)
+      .values({
+        companyName: '동반성장위원회',
+        stage: 'NEGOTIATING',
+        lastContactDate: '2026-04-01T10:00:00+09:00',
+      })
+      .run();
+  });
+
+  it('paused=true + reason을 넘기면 플래그와 사유가 모두 저장된다', () => {
+    queries.setFollowupPause('동반성장위원회', true, '대표님 요청');
+    const c = queries.getClient('동반성장위원회');
+    expect(c!.followupPaused).toBe(true);
+    expect(c!.followupPausedReason).toBe('대표님 요청');
+  });
+
+  it('paused=false를 넘기면 플래그가 false가 되고 reason은 null로 초기화된다', () => {
+    queries.setFollowupPause('동반성장위원회', true, '잠깐 중단');
+    queries.setFollowupPause('동반성장위원회', false);
+    const c = queries.getClient('동반성장위원회');
+    expect(c!.followupPaused).toBe(false);
+    expect(c!.followupPausedReason).toBeNull();
+  });
+
+  it('paused=true이지만 reason 생략 시 사유는 null로 저장된다', () => {
+    queries.setFollowupPause('동반성장위원회', true);
+    const c = queries.getClient('동반성장위원회');
+    expect(c!.followupPaused).toBe(true);
+    expect(c!.followupPausedReason).toBeNull();
+  });
+
+  it('존재하지 않는 companyName은 throw 없이 no-op으로 종료', () => {
+    expect(() =>
+      queries.setFollowupPause('존재하지않는회사', true, 'test'),
+    ).not.toThrow();
+    // 기존 레코드는 변경되지 않는다
+    const c = queries.getClient('동반성장위원회');
+    expect(c!.followupPaused).toBe(false);
+  });
+
+  it('빈 companyName은 no-op', () => {
+    expect(() => queries.setFollowupPause('', true)).not.toThrow();
+    const c = queries.getClient('동반성장위원회');
+    expect(c!.followupPaused).toBe(false);
+  });
+
+  it('updatedAt이 setFollowupPause 호출 후 갱신된다', () => {
+    const before = queries.getClient('동반성장위원회')!;
+    // 시간이 다르게 기록되도록 최소 1ms 대기
+    const original = before.updatedAt;
+    queries.setFollowupPause('동반성장위원회', true, 'touch');
+    const after = queries.getClient('동반성장위원회')!;
+    expect(after.updatedAt).not.toBe(original);
+    expect(new Date(after.updatedAt!).getTime()).toBeGreaterThanOrEqual(
+      new Date(original!).getTime(),
+    );
+  });
+});
+
+describe('getActiveFollowupClients (Phase 4 D-20)', () => {
+  let queries: ReturnType<typeof createClientQueries>;
+  let db: ReturnType<typeof createTestDb>['db'];
+
+  beforeEach(() => {
+    const setup = createTestDb();
+    db = setup.db;
+    queries = createClientQueries(db);
+  });
+
+  it('stage="DORMANT"인 클라이언트는 제외된다', () => {
+    db.insert(clients)
+      .values({
+        companyName: '활성사',
+        stage: 'NEGOTIATING',
+        lastContactDate: '2026-04-01',
+      })
+      .run();
+    db.insert(clients)
+      .values({
+        companyName: '휴면사',
+        stage: 'DORMANT',
+        lastContactDate: '2026-04-01',
+      })
+      .run();
+
+    const result = queries.getActiveFollowupClients();
+    expect(result.map((c) => c.companyName)).toEqual(['활성사']);
+  });
+
+  it('followupPaused=true인 클라이언트는 제외된다', () => {
+    db.insert(clients)
+      .values({
+        companyName: '활성사',
+        stage: 'NEGOTIATING',
+        lastContactDate: '2026-04-01',
+      })
+      .run();
+    db.insert(clients)
+      .values({
+        companyName: '차단사',
+        stage: 'NEGOTIATING',
+        lastContactDate: '2026-04-01',
+      })
+      .run();
+    queries.setFollowupPause('차단사', true, '대표님 요청');
+
+    const result = queries.getActiveFollowupClients();
+    expect(result.map((c) => c.companyName)).toEqual(['활성사']);
+  });
+
+  it('lastContactDate 오름차순(오래된 순)으로 정렬되어 반환된다', () => {
+    db.insert(clients)
+      .values({ companyName: 'B_최근', stage: 'LEAD', lastContactDate: '2026-04-10' })
+      .run();
+    db.insert(clients)
+      .values({ companyName: 'A_오래됨', stage: 'LEAD', lastContactDate: '2026-04-01' })
+      .run();
+    db.insert(clients)
+      .values({ companyName: 'C_중간', stage: 'LEAD', lastContactDate: '2026-04-05' })
+      .run();
+
+    const result = queries.getActiveFollowupClients();
+    expect(result.map((c) => c.companyName)).toEqual([
+      'A_오래됨',
+      'C_중간',
+      'B_최근',
+    ]);
+  });
+
+  it('lastContactDate가 null인 레코드는 SQLite 오름차순 정렬에서 가장 앞에 온다 (null-first)', () => {
+    db.insert(clients)
+      .values({ companyName: '날짜있음', stage: 'LEAD', lastContactDate: '2026-04-01' })
+      .run();
+    db.insert(clients)
+      .values({ companyName: '날짜없음', stage: 'LEAD', lastContactDate: null })
+      .run();
+
+    const result = queries.getActiveFollowupClients();
+    expect(result[0]!.companyName).toBe('날짜없음');
+    expect(result[1]!.companyName).toBe('날짜있음');
+  });
+
+  it('DB에 활성 클라이언트가 없으면 빈 배열을 반환한다', () => {
+    db.insert(clients)
+      .values({ companyName: '휴면사', stage: 'DORMANT', lastContactDate: '2026-04-01' })
+      .run();
+    expect(queries.getActiveFollowupClients()).toEqual([]);
+  });
+
+  it('DORMANT가 아니면서 followupPaused=false인 모든 클라이언트를 반환한다 (통합)', () => {
+    db.insert(clients)
+      .values({ companyName: '활성1', stage: 'LEAD', lastContactDate: '2026-04-05' })
+      .run();
+    db.insert(clients)
+      .values({ companyName: '활성2', stage: 'NEGOTIATING', lastContactDate: '2026-04-03' })
+      .run();
+    db.insert(clients)
+      .values({ companyName: '휴면', stage: 'DORMANT', lastContactDate: '2026-04-01' })
+      .run();
+    db.insert(clients)
+      .values({ companyName: '차단', stage: 'LEAD', lastContactDate: '2026-04-02' })
+      .run();
+    queries.setFollowupPause('차단', true, 'test');
+
+    const result = queries.getActiveFollowupClients();
+    expect(result.map((c) => c.companyName)).toEqual(['활성2', '활성1']);
   });
 });

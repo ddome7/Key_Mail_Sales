@@ -1,6 +1,6 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, asc, eq, ne, sql } from 'drizzle-orm';
 import { clients } from '../db/schema.js';
-import type { NewClient } from '../db/schema.js';
+import type { Client, NewClient } from '../db/schema.js';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { normalizePhone } from '../workflow/phone-normalizer.js';
 
@@ -134,6 +134,70 @@ export function createClientQueries(db: BetterSQLite3Database<any>) {
         .from(clients)
         .all()
         .map((r) => r.companyName);
+    },
+
+    // ─── Phase 4 Plan 04-01 (D-20/D-21) ─────────────────────────
+    // 팔로업 케이던스의 수동 차단/활성 클라이언트 조회 메서드.
+    // D-04 격리 원칙 유지: 단건 토글 + 조건부 활성 목록만 제공.
+
+    /**
+     * D-20/D-21: 특정 클라이언트의 팔로업 차단 플래그를 토글한다.
+     *
+     * - paused=true: `followupPaused=1`, `followupPausedReason=reason ?? null`
+     * - paused=false: `followupPaused=0`, `followupPausedReason=null` (reason 자동 초기화)
+     *
+     * 존재하지 않는 companyName, 빈 문자열 모두 **no-op**으로 조용히 반환한다
+     * (Phase 3 `savePhoneLearning`과 동일한 방어 패턴). 오케스트레이터가
+     * 매칭 성공 후 호출하는 것이 전제이므로, 실패 시 throw하지 않는다.
+     *
+     * Dormant 전환(D-17)과 **별개** — Dormant는 `updateClientField(stage)`로
+     * 다룬다. 수동 차단은 딜을 살려둔 채 자동 팔로업만 제외하는 플래그다.
+     */
+    setFollowupPause(
+      companyName: string,
+      paused: boolean,
+      reason?: string,
+    ): void {
+      if (!companyName) return;
+      db.update(clients)
+        .set({
+          followupPaused: paused,
+          // paused=false일 때 reason을 null로 자동 초기화 (상태 일관성).
+          followupPausedReason: paused ? (reason ?? null) : null,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(clients.companyName, companyName))
+        .run();
+    },
+
+    /**
+     * D-20: 팔로업 대상 활성 클라이언트 목록.
+     *
+     * 조건:
+     *   - `stage != 'DORMANT'` (휴면 제외)
+     *   - `followupPaused = false` (수동 차단 제외)
+     *
+     * 정렬: `lastContactDate ASC` (오래된 순 — Claude's Discretion per 04-01 PLAN).
+     * SQLite ORDER BY ASC는 NULL을 가장 앞에 두므로, lastContactDate가 null인
+     * 레코드는 최우선 반환된다. 04-05 workflow-c가 실제 경과 일수를 계산할 때
+     * null은 skip하지만, 정렬 자체는 null-first로 둔다 (Phase 1/2 시절 데이터 호환).
+     *
+     * D-04 예외 설계: `getAllClients`가 없는 것과 달리, 이 메서드는 "팔로업 루프"
+     * 라는 명확한 목적(전수 스캔)이 있으므로 허용된다. 호출자는 반환된 Client 객체를
+     * 루프 돌며 처리해야 하며, 다른 클라이언트의 민감 정보를 교차 노출해서는 안 된다.
+     */
+    getActiveFollowupClients(): Client[] {
+      return db
+        .select()
+        .from(clients)
+        .where(
+          and(
+            ne(clients.stage, 'DORMANT'),
+            eq(clients.followupPaused, false),
+          ),
+        )
+        .orderBy(asc(clients.lastContactDate))
+        .all();
     },
   };
 }

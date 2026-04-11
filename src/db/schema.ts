@@ -24,6 +24,12 @@ export const clients = sqliteTable('clients', {
   communicationStyle: text('communication_style'),
   stage: text('stage').default('PROSPECT'),
   lastContactDate: text('last_contact_date'),
+  // ─── Phase 4 (D-20/D-21) ─────────────────────────────────────
+  // 수동 차단 플래그: 대표님이 "이 딜은 팔로업 더 안 해"라고 지시한 클라이언트.
+  // Dormant와 구분 — 딜은 진행 중이지만 자동 팔로업에서 제외한다.
+  // mode:'boolean'은 Drizzle이 SQLite integer 0/1 ↔ JS boolean을 자동 변환한다.
+  followupPaused: integer('followup_paused', { mode: 'boolean' }).notNull().default(false),
+  followupPausedReason: text('followup_paused_reason'),
   createdAt: text('created_at').default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').default(sql`(datetime('now'))`),
 });
@@ -99,7 +105,22 @@ export const touchpoints = sqliteTable(
     clientId: integer('client_id')
       .notNull()
       .references(() => clients.id, { onDelete: 'cascade' }),
-    type: text('type', { enum: ['email', 'call', 'stage_change'] }).notNull(),
+    // ─── Phase 4 (D-04) enum 확장 ────────────────────────────
+    // Phase 3까지는 'email' 단일 값만 사용했으나, Phase 4는 팔로업 케이던스
+    // 판정을 위해 이메일의 방향성(발신/수신)을 명시적으로 구분해야 한다.
+    // 기존 'email' 값은 D-04 후방 호환을 위해 **반드시 보존** — Phase 3 운영 DB에
+    // 쌓인 레거시 레코드는 모두 outbound 드래프트 기록이므로 getLastOutbound 조회 시
+    // 'email_sent'/'call'과 동일하게 취급된다.
+    type: text('type', {
+      enum: [
+        'email', // LEGACY: Phase 3 기록 보존용 (D-04 후방 호환, outbound로 간주)
+        'email_sent', // D-04: outbound 이메일 (발신)
+        'email_received', // D-04: inbound 이메일 (수신)
+        'call', // 통화 (outbound로 간주)
+        'stage_change', // 파이프라인 상태 변경
+        'manual_pause', // D-20: 수동 차단 audit 기록
+      ],
+    }).notNull(),
     sourceId: text('source_id').notNull(), // threadId | slackTs | dealId
     summary: text('summary').notNull(),
     metadata: text('metadata', { mode: 'json' }),
