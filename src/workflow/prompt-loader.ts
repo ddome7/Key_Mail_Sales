@@ -50,6 +50,7 @@ export const SECTION_MAP: Record<string, SectionRange> = {
   'service-recommendation': { start: 599, end: 684 },// SECTION 12 - 서비스 추천 매트릭스
   'lifecycle':            { start: 685, end: 753 },   // SECTION 13 - 생애주기 관리
   'objection-handling':   { start: 754, end: 841 },   // SECTION 14 - 반론/거절 대응
+  'followup-cadence':     { start: 841, end: 886 },   // SECTION 15 - 팔로업 케이던스 시스템 (Phase 4)
   'tone-calibration':     { start: 888, end: 930 },   // SECTION 16 - 톤 캘리브레이션
 
   // Industry playbooks (SECTION 18)
