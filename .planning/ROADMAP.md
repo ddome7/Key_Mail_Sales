@@ -65,10 +65,14 @@ Plans:
   2. 클로바노트 텍스트에서 핵심 사항과 액션아이템이 구조화되어 추출된다
   3. 통화 내용 + 기존 이메일 스레드 맥락이 반영된 후속 이메일이 올바른 threadId로 생성된다
   4. 통화 브리핑이 briefings DB에 자동 저장된다
-**Plans**: TBD
+**Plans:** 5 plans
 
 Plans:
-- [ ] 03-01: TBD
+- [ ] 03-01-PLAN.md — Anthropic SDK 설치 + briefings/touchpoints DB 스키마 + 쿼리 모듈 + 슬랙 커서 + 픽스처
+- [ ] 03-02-PLAN.md — 익시오 파서 + 전화번호 정규화 + clients 쿼리 확장 + 3단계 클라이언트 매칭 상태 머신
+- [ ] 03-03-PLAN.md — call-analyzer (Claude tool_use 기반 통화 분석: 요약/액션/분위기)
+- [ ] 03-04-PLAN.md — Gmail 스레드 로더 + follow-up-composer (프롬프트 빌더 + 전략 선택 + subject 헬퍼)
+- [ ] 03-05-PLAN.md — runWorkflowB 오케스트레이터 + Workflow A 후방 호환 (touchpoint 기록)
 
 ### Phase 4: Workflow C (팔로업 자동화)
 **Goal**: 이메일 발송 후 미응답 시 케이던스 규칙(Day 3/7/14/30)에 따라 자동으로 팔로업 드래프트가 생성되고, 30일 미응답 시 휴면 관리로 전환된다
@@ -107,6 +111,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete    | 2026-04-07 |
 | 2. Workflow A | 0/5 | Planned | - |
-| 3. Workflow B | 0/0 | Not started | - |
+| 3. Workflow B | 0/5 | Planned | - |
 | 4. Workflow C | 0/0 | Not started | - |
 | 5. Learning Loop | 0/0 | Not started | - |
