@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - 클라이언트/서비스 DB, 파이프라인 상태 추적, 데이터 안전장치 구축 (completed 2026-04-07)
 - [ ] **Phase 2: Workflow A (신규 문의 처리)** - 시장조사 -> 맞춤 이메일 작성 -> 승인 플로우까지 end-to-end 워크플로우
-- [ ] **Phase 3: Workflow B (통화 후속 처리)** - 슬랙 통화요약 읽기 -> 액션아이템 추출 -> 후속 이메일 생성
+- [x] **Phase 3: Workflow B (통화 후속 처리)** - 슬랙 통화요약 읽기 -> 액션아이템 추출 -> 후속 이메일 생성
 - [ ] **Phase 4: Workflow C (팔로업 자동화)** - 미응답 리마인드 케이던스 자동 실행 및 휴면 관리
 - [ ] **Phase 5: Learning Loop (학습 루프)** - 이메일 패턴 학습, 수정 추적, 크로스셀 감지, 시장정보 축적
 
@@ -68,11 +68,11 @@ Plans:
 **Plans:** 5 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Anthropic SDK 설치 + briefings/touchpoints DB 스키마 + 쿼리 모듈 + 슬랙 커서 + 픽스처
-- [ ] 03-02-PLAN.md — 익시오 파서 + 전화번호 정규화 + clients 쿼리 확장 + 3단계 클라이언트 매칭 상태 머신
-- [ ] 03-03-PLAN.md — call-analyzer (Claude tool_use 기반 통화 분석: 요약/액션/분위기)
-- [ ] 03-04-PLAN.md — Gmail 스레드 로더 + follow-up-composer (프롬프트 빌더 + 전략 선택 + subject 헬퍼)
-- [ ] 03-05-PLAN.md — runWorkflowB 오케스트레이터 + Workflow A 후방 호환 (touchpoint 기록)
+- [x] 03-01-PLAN.md — Anthropic SDK 설치 + briefings/touchpoints DB 스키마 + 쿼리 모듈 + 슬랙 커서 + 픽스처
+- [x] 03-02-PLAN.md — 익시오 파서 + 전화번호 정규화 + clients 쿼리 확장 + 3단계 클라이언트 매칭 상태 머신
+- [x] 03-03-PLAN.md — call-analyzer (Claude tool_use 기반 통화 분석: 요약/액션/분위기)
+- [x] 03-04-PLAN.md — Gmail 스레드 로더 + follow-up-composer (프롬프트 빌더 + 전략 선택 + subject 헬퍼)
+- [x] 03-05-PLAN.md — runWorkflowB 오케스트레이터 + Workflow A 후방 호환 (touchpoint 기록)
 
 ### Phase 4: Workflow C (팔로업 자동화)
 **Goal**: 이메일 발송 후 미응답 시 케이던스 규칙(Day 3/7/14/30)에 따라 자동으로 팔로업 드래프트가 생성되고, 30일 미응답 시 휴면 관리로 전환된다
