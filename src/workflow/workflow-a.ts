@@ -19,6 +19,7 @@ import type { InquiryInput, WorkflowResult } from '../types/email.js';
 import type { GmailToolFn } from './draft-creator.js';
 import type { createClientQueries } from '../queries/clients.js';
 import type { createServiceQueries } from '../queries/services.js';
+import type { createTouchpointQueries } from '../queries/touchpoints.js';
 
 import { classifyInquiry } from './classify.js';
 import { getServiceRecommendation } from './classify.js';
@@ -41,6 +42,14 @@ export interface WorkflowDependencies {
   ultraPath?: string;
   /** Returns all known company names for cross-contamination check */
   getAllCompanyNames: () => string[];
+  /**
+   * D-15: Phase 3 통합 타임라인 기록용 (optional).
+   *
+   * 주입되지 않으면 touchpoint 기록을 skip한다 (Phase 2 후방 호환 보장).
+   * 주입되면 이메일 드래프트 생성 직후 type:'email' 터치포인트를 1건 기록한다.
+   * 기록 실패는 비치명적 — 본 흐름을 중단시키지 않고 warning만 추가.
+   */
+  touchpointQueries?: ReturnType<typeof createTouchpointQueries>;
 }
 
 /** Options for testing: inject AI-generated body instead of calling AI */
@@ -171,6 +180,25 @@ export async function runWorkflowA(
   // ─── Step 8: Gmail 드래프트 생성 (D-10, APPR-01) ─────
   const draftResult = await createDraft(emailDraft, deps.gmailTool);
 
+  // ─── Step 8.5: 터치포인트 기록 (D-15, Phase 3 후방 호환) ─
+  // touchpointQueries가 주입되지 않으면 skip (Phase 2 기존 호출자 보호).
+  // client가 null이면 FK 제약 때문에 기록 불가 — skip.
+  // 기록 실패는 비치명적 (warnings만 추가).
+  if (deps.touchpointQueries && client) {
+    try {
+      deps.touchpointQueries.createTouchpoint({
+        clientId: client.id,
+        type: 'email',
+        sourceId: draftResult.threadId ?? draftResult.draftId,
+        summary: `[드래프트] ${emailDraft.subject}`,
+        metadata: { draftId: draftResult.draftId, source: 'workflow-a' },
+        occurredAt: new Date().toISOString(),
+      });
+    } catch {
+      allWarnings.push('터치포인트 기록 실패 (비치명적)');
+    }
+  }
+
   // ─── Step 9: 파이프라인 업데이트 ─────────────────────
   try {
     addDeal(
@@ -299,6 +327,30 @@ export async function handleRevisionRequest(
     revisedDraft,
     deps.gmailTool,
   );
+
+  // ─── D-15: Revision도 터치포인트 기록 (metadata.revision=true) ─
+  if (deps.touchpointQueries) {
+    const client = deps.clientQueries.getClient(originalInput.companyName);
+    if (client) {
+      try {
+        deps.touchpointQueries.createTouchpoint({
+          clientId: client.id,
+          type: 'email',
+          sourceId: revisionResult.draftId,
+          summary: `[드래프트-수정] ${revisedDraft.subject}`,
+          metadata: {
+            draftId: revisionResult.draftId,
+            previousDraftId: originalDraftId,
+            source: 'workflow-a',
+            revision: true,
+          },
+          occurredAt: new Date().toISOString(),
+        });
+      } catch {
+        allWarnings.push('터치포인트 기록 실패 (비치명적)');
+      }
+    }
+  }
 
   return {
     success: true,

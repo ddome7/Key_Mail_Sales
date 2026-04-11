@@ -180,3 +180,160 @@ describe('handleRevisionRequest', () => {
     expect(gmailTool).toHaveBeenCalledOnce();
   });
 });
+
+// ─── D-15: Touchpoint 기록 후방 호환 ─────────────────────
+
+describe('D-15: touchpoint 기록 후방 호환', () => {
+  type TouchpointMock = {
+    createTouchpoint: ReturnType<typeof vi.fn>;
+    getTimelineByClient: ReturnType<typeof vi.fn>;
+  };
+
+  function createTouchpointMock(): TouchpointMock {
+    return {
+      createTouchpoint: vi.fn().mockReturnValue({ id: 1 }),
+      getTimelineByClient: vi.fn().mockReturnValue([]),
+    };
+  }
+
+  // 클라이언트가 존재하는 상황을 시뮬레이션하기 위한 mock
+  // ensureClient는 research.ts의 로직을 따르며, getClient가 값을 반환하면
+  // 그 결과를 사용하거나 새로 만든다. 테스트에서는 단순히 getClient가 유효한
+  // 클라이언트를 반환하도록 설정해 client가 null이 아닌 케이스를 만든다.
+  function createMockClient() {
+    return {
+      id: 42,
+      companyName: '테스트회사',
+      contactName: '김대리',
+      contactEmail: 'test@example.com',
+      contactPhone: null,
+      industry: null,
+      budgetTier: null,
+      budgetPattern: null,
+      preferredServices: null,
+      communicationStyle: null,
+      notes: null,
+      stage: 'PROSPECT',
+      history: null,
+      nextOpportunity: null,
+      lastContactDate: null,
+      createdAt: null,
+      updatedAt: null,
+    };
+  }
+
+  function createDepsWithClient(touchpointQueries?: TouchpointMock): WorkflowDependencies {
+    const mockClient = createMockClient();
+    return createMockDeps({
+      clientQueries: {
+        getClient: vi.fn().mockReturnValue(mockClient),
+        getClientById: vi.fn().mockReturnValue(mockClient),
+        upsertClient: vi.fn(),
+        updateClientField: vi.fn(),
+      } as any,
+      touchpointQueries: touchpointQueries as any,
+    });
+  }
+
+  it('기존 동작 유지 (touchpointQueries 주입 없이)', async () => {
+    // touchpointQueries 없음 — Phase 2 기존 경로 그대로
+    const deps = createDepsWithClient();
+    const input = createMockInput();
+
+    const result = await runWorkflowA(input, deps, {
+      aiGeneratedBody: '<p>안녕하세요.</p><p>감사합니다. 문의주시면 안내 도와드리겠습니다.</p>',
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.draftId).toBeDefined();
+  });
+
+  it('touchpointQueries 주입 시 runWorkflowA가 email touchpoint를 기록한다', async () => {
+    const tp = createTouchpointMock();
+    const deps = createDepsWithClient(tp);
+    const input = createMockInput();
+
+    const result = await runWorkflowA(input, deps, {
+      aiGeneratedBody: '<p>안녕하세요.</p><p>감사합니다. 문의주시면 안내 도와드리겠습니다.</p>',
+    });
+
+    expect(result.success).toBe(true);
+    expect(tp.createTouchpoint).toHaveBeenCalledOnce();
+    const call = tp.createTouchpoint.mock.calls[0][0];
+    expect(call.type).toBe('email');
+    expect(call.clientId).toBe(42);
+    // sourceId는 draftResult.threadId 우선, 없으면 draftId fallback
+    expect(['thread_456', 'draft_123']).toContain(call.sourceId);
+    expect(call.summary).toMatch(/^\[드래프트\]/);
+    expect(call.metadata).toMatchObject({ draftId: 'draft_123', source: 'workflow-a' });
+    expect(typeof call.occurredAt).toBe('string');
+  });
+
+  it('touchpointQueries 주입 시 handleRevisionRequest도 email touchpoint를 기록한다 (revision=true)', async () => {
+    const tp = createTouchpointMock();
+    const gmailTool = vi.fn().mockResolvedValue({
+      id: 'draft_revised_789',
+      threadId: 'thread_456',
+    });
+    const deps = createDepsWithClient(tp);
+    deps.gmailTool = gmailTool;
+    const input = createMockInput();
+
+    const result = await handleRevisionRequest(
+      'draft_original_123',
+      '톤을 더 친근하게 바꿔주세요',
+      input,
+      deps,
+      {
+        aiGeneratedBody: '<p>안녕하세요!</p><p>감사합니다. 문의주시면 안내 도와드리겠습니다.</p>',
+      },
+    );
+
+    expect(result.success).toBe(true);
+    expect(tp.createTouchpoint).toHaveBeenCalledOnce();
+    const call = tp.createTouchpoint.mock.calls[0][0];
+    expect(call.type).toBe('email');
+    expect(call.clientId).toBe(42);
+    expect(call.metadata).toMatchObject({ revision: true, source: 'workflow-a' });
+  });
+
+  it('touchpoint 기록 실패는 비치명적 (성공 유지 + warnings 추가)', async () => {
+    const tp: TouchpointMock = {
+      createTouchpoint: vi.fn().mockImplementation(() => {
+        throw new Error('DB locked');
+      }),
+      getTimelineByClient: vi.fn(),
+    };
+    const deps = createDepsWithClient(tp);
+    const input = createMockInput();
+
+    const result = await runWorkflowA(input, deps, {
+      aiGeneratedBody: '<p>안녕하세요.</p><p>감사합니다. 문의주시면 안내 도와드리겠습니다.</p>',
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.warnings).toBeDefined();
+    expect(result.warnings!.some((w) => w.includes('터치포인트 기록 실패'))).toBe(true);
+  });
+
+  it('client가 null이면 touchpoint 기록을 skip한다', async () => {
+    const tp = createTouchpointMock();
+    // getClient가 undefined를 반환하도록 하여 ensureClient가 새로 upsert하더라도
+    // 반환된 client가 null이 되는 경로 구성은 복잡하므로, 여기서는 clientQueries가
+    // 완전히 비어있는 기본 mock (getClient → undefined, upsertClient no-op 후 재조회도 undefined)
+    // 을 사용한다. Phase 2 ensureClient는 이 경우 null을 반환한다.
+    const deps = createMockDeps({
+      touchpointQueries: tp as any,
+      // 기본 createMockDeps의 clientQueries: getClient → undefined
+    });
+    const input = createMockInput();
+
+    const result = await runWorkflowA(input, deps, {
+      aiGeneratedBody: '<p>안녕하세요.</p><p>감사합니다. 문의주시면 안내 도와드리겠습니다.</p>',
+    });
+
+    expect(result.success).toBe(true);
+    // client가 null이면 기록을 건너뛴다 (가드: if deps.touchpointQueries && client)
+    expect(tp.createTouchpoint).not.toHaveBeenCalled();
+  });
+});
