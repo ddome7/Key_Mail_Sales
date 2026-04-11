@@ -129,8 +129,253 @@ describe('createTouchpointQueries', () => {
     expect(keys).not.toContain('listTouchpoints');
     expect(keys).not.toContain('getAll');
     expect(keys).not.toContain('listAll');
+    // Phase 4 Plan 04-01에서 getLastOutboundByClient/getLastInboundByClient 2개 추가.
+    // 모든 조회 메서드는 여전히 clientId를 강제한다 — D-04 격리 원칙 유지.
     expect(keys.sort()).toEqual(
-      ['createTouchpoint', 'getTimelineByClient'].sort(),
+      [
+        'createTouchpoint',
+        'getTimelineByClient',
+        'getLastOutboundByClient',
+        'getLastInboundByClient',
+      ].sort(),
     );
+  });
+});
+
+// ─── Phase 4 Plan 04-01 확장: getLastOutbound / getLastInbound ─────
+describe('getLastOutboundByClient (Phase 4 D-02/D-04)', () => {
+  let setup: ReturnType<typeof setupDb>;
+  let queries: ReturnType<typeof createTouchpointQueries>;
+  let clientId: number;
+  let otherClientId: number;
+
+  beforeEach(() => {
+    setup = setupDb();
+    queries = createTouchpointQueries(setup.db);
+    clientId = setup.db
+      .insert(clients)
+      .values({ companyName: '동반성장위원회' })
+      .returning()
+      .get()!.id;
+    otherClientId = setup.db
+      .insert(clients)
+      .values({ companyName: '타사' })
+      .returning()
+      .get()!.id;
+  });
+
+  it('type="email_sent" 단독 기록을 조회한다', () => {
+    queries.createTouchpoint({
+      clientId,
+      type: 'email_sent',
+      sourceId: 'thread-1',
+      summary: '제안서 발송',
+      occurredAt: '2026-04-01T10:00:00+09:00',
+    });
+    const result = queries.getLastOutboundByClient(clientId);
+    expect(result).toBeDefined();
+    expect(result!.type).toBe('email_sent');
+    expect(result!.summary).toBe('제안서 발송');
+  });
+
+  it('type="call" 단독 기록도 outbound로 간주한다', () => {
+    queries.createTouchpoint({
+      clientId,
+      type: 'call',
+      sourceId: '1712548680.123456',
+      summary: '통화 브리핑',
+      occurredAt: '2026-04-02T14:00:00+09:00',
+    });
+    const result = queries.getLastOutboundByClient(clientId);
+    expect(result).toBeDefined();
+    expect(result!.type).toBe('call');
+  });
+
+  it('D-04 후방 호환: legacy type="email" 레코드도 outbound로 조회된다', () => {
+    queries.createTouchpoint({
+      clientId,
+      type: 'email',
+      sourceId: 'thread-legacy',
+      summary: 'Phase 3 레거시 이메일',
+      occurredAt: '2026-03-15T09:00:00+09:00',
+    });
+    const result = queries.getLastOutboundByClient(clientId);
+    expect(result).toBeDefined();
+    expect(result!.type).toBe('email');
+    expect(result!.summary).toBe('Phase 3 레거시 이메일');
+  });
+
+  it('type="email_received"는 outbound로 간주하지 않는다', () => {
+    queries.createTouchpoint({
+      clientId,
+      type: 'email_received',
+      sourceId: 'thread-1',
+      summary: '클라이언트 답장',
+      occurredAt: '2026-04-03T08:00:00+09:00',
+    });
+    const result = queries.getLastOutboundByClient(clientId);
+    expect(result).toBeUndefined();
+  });
+
+  it('여러 outbound 기록 중 occurredAt이 가장 최근인 것 1건을 반환한다', () => {
+    queries.createTouchpoint({
+      clientId,
+      type: 'email_sent',
+      sourceId: 't1',
+      summary: '첫번째',
+      occurredAt: '2026-04-01T10:00:00+09:00',
+    });
+    queries.createTouchpoint({
+      clientId,
+      type: 'call',
+      sourceId: 't2',
+      summary: '최근 통화',
+      occurredAt: '2026-04-05T10:00:00+09:00',
+    });
+    queries.createTouchpoint({
+      clientId,
+      type: 'email',
+      sourceId: 't3',
+      summary: '중간 legacy email',
+      occurredAt: '2026-04-03T10:00:00+09:00',
+    });
+    const result = queries.getLastOutboundByClient(clientId);
+    expect(result!.summary).toBe('최근 통화');
+  });
+
+  it('매칭 레코드가 없으면 undefined 반환', () => {
+    expect(queries.getLastOutboundByClient(clientId)).toBeUndefined();
+  });
+
+  it('D-04 격리: 타 clientId의 outbound는 반환하지 않는다', () => {
+    queries.createTouchpoint({
+      clientId: otherClientId,
+      type: 'email_sent',
+      sourceId: 'other',
+      summary: '타사 발송',
+      occurredAt: '2026-04-05T10:00:00+09:00',
+    });
+    expect(queries.getLastOutboundByClient(clientId)).toBeUndefined();
+  });
+
+  it('stage_change는 outbound 판정에서 제외된다', () => {
+    queries.createTouchpoint({
+      clientId,
+      type: 'stage_change',
+      sourceId: 'deal-1',
+      summary: 'LEAD → NEGOTIATING',
+      occurredAt: '2026-04-01T10:00:00+09:00',
+    });
+    expect(queries.getLastOutboundByClient(clientId)).toBeUndefined();
+  });
+});
+
+describe('getLastInboundByClient (Phase 4 D-02)', () => {
+  let setup: ReturnType<typeof setupDb>;
+  let queries: ReturnType<typeof createTouchpointQueries>;
+  let clientId: number;
+  let otherClientId: number;
+
+  beforeEach(() => {
+    setup = setupDb();
+    queries = createTouchpointQueries(setup.db);
+    clientId = setup.db
+      .insert(clients)
+      .values({ companyName: '동반성장위원회' })
+      .returning()
+      .get()!.id;
+    otherClientId = setup.db
+      .insert(clients)
+      .values({ companyName: '타사' })
+      .returning()
+      .get()!.id;
+  });
+
+  it('sinceIso 이후의 email_received 레코드를 반환한다', () => {
+    queries.createTouchpoint({
+      clientId,
+      type: 'email_received',
+      sourceId: 'thread-1',
+      summary: '클라이언트 답장',
+      occurredAt: '2026-04-03T08:00:00+09:00',
+    });
+    const result = queries.getLastInboundByClient(
+      clientId,
+      '2026-04-01T00:00:00+09:00',
+    );
+    expect(result).toBeDefined();
+    expect(result!.type).toBe('email_received');
+    expect(result!.summary).toBe('클라이언트 답장');
+  });
+
+  it('sinceIso보다 이전의 inbound는 제외된다', () => {
+    queries.createTouchpoint({
+      clientId,
+      type: 'email_received',
+      sourceId: 'thread-1',
+      summary: '오래된 답장',
+      occurredAt: '2026-03-01T10:00:00+09:00',
+    });
+    const result = queries.getLastInboundByClient(
+      clientId,
+      '2026-04-01T00:00:00+09:00',
+    );
+    expect(result).toBeUndefined();
+  });
+
+  it('type="email_sent"는 inbound로 간주하지 않는다', () => {
+    queries.createTouchpoint({
+      clientId,
+      type: 'email_sent',
+      sourceId: 'thread-1',
+      summary: '대표님이 보낸 메일',
+      occurredAt: '2026-04-05T10:00:00+09:00',
+    });
+    const result = queries.getLastInboundByClient(
+      clientId,
+      '2026-04-01T00:00:00+09:00',
+    );
+    expect(result).toBeUndefined();
+  });
+
+  it('여러 inbound 중 가장 최근 1건만 반환한다', () => {
+    queries.createTouchpoint({
+      clientId,
+      type: 'email_received',
+      sourceId: 'thread-1',
+      summary: '첫번째 답장',
+      occurredAt: '2026-04-02T10:00:00+09:00',
+    });
+    queries.createTouchpoint({
+      clientId,
+      type: 'email_received',
+      sourceId: 'thread-1',
+      summary: '두번째 답장',
+      occurredAt: '2026-04-05T10:00:00+09:00',
+    });
+    const result = queries.getLastInboundByClient(
+      clientId,
+      '2026-04-01T00:00:00+09:00',
+    );
+    expect(result!.summary).toBe('두번째 답장');
+  });
+
+  it('매칭 레코드 없으면 undefined', () => {
+    expect(
+      queries.getLastInboundByClient(clientId, '2026-04-01T00:00:00+09:00'),
+    ).toBeUndefined();
+  });
+
+  it('D-04 격리: 타 clientId의 inbound는 반환하지 않는다', () => {
+    queries.createTouchpoint({
+      clientId: otherClientId,
+      type: 'email_received',
+      sourceId: 'other-thread',
+      summary: '타사 답장',
+      occurredAt: '2026-04-05T10:00:00+09:00',
+    });
+    expect(
+      queries.getLastInboundByClient(clientId, '2026-04-01T00:00:00+09:00'),
+    ).toBeUndefined();
   });
 });
