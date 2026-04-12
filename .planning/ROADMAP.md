@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation** - 클라이언트/서비스 DB, 파이프라인 상태 추적, 데이터 안전장치 구축 (completed 2026-04-07)
 - [ ] **Phase 2: Workflow A (신규 문의 처리)** - 시장조사 -> 맞춤 이메일 작성 -> 승인 플로우까지 end-to-end 워크플로우
 - [x] **Phase 3: Workflow B (통화 후속 처리)** - 슬랙 통화요약 읽기 -> 액션아이템 추출 -> 후속 이메일 생성
-- [ ] **Phase 4: Workflow C (팔로업 자동화)** - 미응답 리마인드 케이던스 자동 실행 및 휴면 관리
+- [x] **Phase 4: Workflow C (팔로업 자동화)** - 미응답 리마인드 케이던스 자동 실행 및 휴면 관리
 - [ ] **Phase 5: Learning Loop (학습 루프)** - 이메일 패턴 학습, 수정 추적, 크로스셀 감지, 시장정보 축적
 
 ## Phase Details
@@ -86,7 +86,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 04-01: TBD
+- [x] 04-01: TBD
 
 ### Phase 5: Learning Loop (학습 루프)
 **Goal**: 매 소통의 성공/실패 패턴이 자동 축적되고, 대표님의 수정 습관을 학습하며, 크로스셀 기회와 시장정보를 자동 감지하여 봇의 품질이 지속적으로 개선된다
