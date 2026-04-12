@@ -97,10 +97,15 @@ Plans:
   2. 대표님이 드래프트를 수정한 내용(edit delta)이 학습 신호로 저장되어 향후 드래프트에 반영된다
   3. 크로스셀/업셀 트리거 조건 충족 시 추가 서비스 제안 타이밍이 자동 감지된다
   4. 소통 과정에서 파악된 경쟁사/시장 정보가 market DB에 자동 축적된다
-**Plans**: TBD
+**Plans:** 6 plans
 
 Plans:
-- [ ] 05-01: TBD
+- [ ] 05-01-PLAN.md — DB 스키마 확장 (email_patterns + edit_deltas + competitor_intel) + 쿼리 모듈 3개 + 픽스처
+- [ ] 05-02-PLAN.md — 순수 함수 (email-outcome-classifier + cross-sell-detector + learning-prompt-injector)
+- [ ] 05-03-PLAN.md — Edit Delta 추출기 (Gmail SENT 로드 + AI diff 요약)
+- [ ] 05-04-PLAN.md — 경쟁사 정보 추출기 + 이메일 성과 패턴 트래커
+- [ ] 05-05-PLAN.md — Learning Loop 오케스트레이터 + 학습 보고서 렌더러
+- [ ] 05-06-PLAN.md — CLI 진입점 + D-19 touchpoint metadata 확장
 
 ## Progress
 
@@ -113,4 +118,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 2. Workflow A | 0/5 | Planned | - |
 | 3. Workflow B | 0/5 | Planned | - |
 | 4. Workflow C | 0/0 | Not started | - |
-| 5. Learning Loop | 0/0 | Not started | - |
+| 5. Learning Loop | 0/6 | Planned | - |
