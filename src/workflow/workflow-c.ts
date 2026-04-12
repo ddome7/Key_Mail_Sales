@@ -529,6 +529,7 @@ export async function runWorkflowCForClient(
           if (dealForDormant) {
             try {
               updateDealStage(dealForDormant.id, 'DORMANT', deps.pipelinePath);
+              deps.clientQueries.updateClientField(companyName, 'stage', 'DORMANT');
               dormantPending = false;
             } catch (err) {
               warnings.push(
