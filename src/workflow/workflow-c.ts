@@ -511,6 +511,7 @@ export async function runWorkflowCForClient(
             toneIntent: stage.toneIntent,
             isFinalTouch: stage.isFinalTouch,
           },
+          originalBody: aiGeneratedBody,
         },
         occurredAt: new Date().toISOString(),
       } as any);

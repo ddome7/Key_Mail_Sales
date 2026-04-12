@@ -387,6 +387,7 @@ export async function runWorkflowB(
             draftId: draftResult.draftId,
             source: 'workflow-b',
             isReply: threadHistory.length > 0,
+            originalBody: emailDraft.htmlBody,
           },
           occurredAt: new Date().toISOString(),
         });

@@ -191,7 +191,7 @@ export async function runWorkflowA(
         type: 'email_sent',
         sourceId: draftResult.threadId ?? draftResult.draftId,
         summary: `[드래프트] ${emailDraft.subject}`,
-        metadata: { draftId: draftResult.draftId, source: 'workflow-a' },
+        metadata: { draftId: draftResult.draftId, source: 'workflow-a', originalBody: emailDraft.htmlBody },
         occurredAt: new Date().toISOString(),
       });
     } catch {
@@ -343,6 +343,7 @@ export async function handleRevisionRequest(
             previousDraftId: originalDraftId,
             source: 'workflow-a',
             revision: true,
+            originalBody: revisedDraft.htmlBody,
           },
           occurredAt: new Date().toISOString(),
         });
