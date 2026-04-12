@@ -49,6 +49,4 @@ CREATE TABLE `email_patterns` (
 CREATE INDEX `email_patterns_client_idx` ON `email_patterns` (`client_id`);--> statement-breakpoint
 CREATE INDEX `email_patterns_industry_strategy_idx` ON `email_patterns` (`industry`,`strategy_used`);--> statement-breakpoint
 CREATE INDEX `email_patterns_outcome_idx` ON `email_patterns` (`outcome`);--> statement-breakpoint
-CREATE INDEX `email_patterns_touchpoint_idx` ON `email_patterns` (`touchpoint_id`);--> statement-breakpoint
-ALTER TABLE `clients` ADD `followup_paused` integer DEFAULT false NOT NULL;--> statement-breakpoint
-ALTER TABLE `clients` ADD `followup_paused_reason` text;
+CREATE INDEX `email_patterns_touchpoint_idx` ON `email_patterns` (`touchpoint_id`);
