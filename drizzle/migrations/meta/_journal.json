@@ -15,6 +15,13 @@
       "when": 1775970000000,
       "tag": "0001_followup_cadence",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1775981024088,
+      "tag": "0002_learning_loop",
+      "breakpoints": true
     }
   ]
 }

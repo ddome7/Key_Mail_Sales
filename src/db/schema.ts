@@ -133,6 +133,116 @@ export const touchpoints = sqliteTable(
   }),
 );
 
+// ─── email_patterns (D-03 이메일 성공/실패 패턴) ─────────────
+// 매 이메일 소통의 결과(답장/미응답/긍정/부정)를 기록하여
+// 업종별/전략별 답장률 통계를 축적한다. Phase 5 학습 루프의 핵심 테이블.
+export const emailPatterns = sqliteTable(
+  'email_patterns',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    clientId: integer('client_id')
+      .notNull()
+      .references(() => clients.id, { onDelete: 'cascade' }),
+    touchpointId: integer('touchpoint_id').references(() => touchpoints.id, {
+      onDelete: 'set null',
+    }),
+    strategyUsed: text('strategy_used'), // 'A'~'L'
+    toneLevel: integer('tone_level'), // 1~5
+    contextType: text('context_type'), // proposal | contract | ...
+    subjectLine: text('subject_line'),
+    bodyPreview: text('body_preview'), // 첫 200자
+    sentAt: text('sent_at'), // ISO 8601
+    replyReceivedAt: text('reply_received_at'), // null = 미응답
+    outcome: text('outcome', {
+      enum: ['replied', 'no_reply', 'positive', 'negative', 'pending'],
+    })
+      .notNull()
+      .default('pending'),
+    daysToReply: integer('days_to_reply'),
+    industry: text('industry'),
+    createdAt: text('created_at').default(sql`(datetime('now'))`),
+  },
+  (table) => ({
+    clientIdx: index('email_patterns_client_idx').on(table.clientId),
+    industryStrategyIdx: index('email_patterns_industry_strategy_idx').on(
+      table.industry,
+      table.strategyUsed,
+    ),
+    outcomeIdx: index('email_patterns_outcome_idx').on(table.outcome),
+    touchpointIdx: index('email_patterns_touchpoint_idx').on(
+      table.touchpointId,
+    ),
+  }),
+);
+
+// ─── edit_deltas (D-07 대표님 수정 패턴 학습) ────────────────
+// 봇이 생성한 드래프트 원본과 대표님이 수정한 최종본을 비교하여
+// 수정 습관(톤 변경, 가격 삭제 등)을 학습 신호로 저장한다.
+export const editDeltas = sqliteTable(
+  'edit_deltas',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    clientId: integer('client_id')
+      .notNull()
+      .references(() => clients.id, { onDelete: 'cascade' }),
+    touchpointId: integer('touchpoint_id').references(() => touchpoints.id, {
+      onDelete: 'set null',
+    }),
+    originalBody: text('original_body'),
+    finalBody: text('final_body'),
+    diffSummary: text('diff_summary'),
+    diffCategory: text('diff_category', {
+      enum: [
+        'tone',
+        'content',
+        'structure',
+        'pricing',
+        'greeting',
+        'closing',
+        'none',
+      ],
+    }),
+    createdAt: text('created_at').default(sql`(datetime('now'))`),
+  },
+  (table) => ({
+    clientIdx: index('edit_deltas_client_idx').on(table.clientId),
+    touchpointIdx: index('edit_deltas_touchpoint_idx').on(table.touchpointId),
+  }),
+);
+
+// ─── competitor_intel (D-13 경쟁사/시장 정보 축적) ────────────
+// 통화/이메일에서 감지된 경쟁사 정보(가격, 서비스, 전략 등)를 구조화하여
+// 시장 조사 시 경쟁사 대비 포지셔닝 강화에 활용한다.
+export const competitorIntel = sqliteTable(
+  'competitor_intel',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    clientId: integer('client_id')
+      .notNull()
+      .references(() => clients.id, { onDelete: 'cascade' }),
+    competitorName: text('competitor_name').notNull(),
+    intelType: text('intel_type', {
+      enum: ['pricing', 'service', 'strategy', 'weakness', 'general'],
+    }).notNull(),
+    detail: text('detail').notNull(),
+    source: text('source', {
+      enum: ['call_analysis', 'email_reply', 'market_research'],
+    }).notNull(),
+    confidence: text('confidence', {
+      enum: ['confirmed', 'inferred', 'rumor'],
+    }).notNull(),
+    discoveredAt: text('discovered_at').default(sql`(datetime('now'))`),
+  },
+  (table) => ({
+    clientIdx: index('competitor_intel_client_idx').on(table.clientId),
+    nameTypeIdx: index('competitor_intel_name_type_idx').on(
+      table.clientId,
+      table.competitorName,
+      table.intelType,
+    ),
+  }),
+);
+
 // Insert types
 export type NewClient = typeof clients.$inferInsert;
 export type Client = typeof clients.$inferSelect;
@@ -144,3 +254,9 @@ export type NewBriefing = typeof briefings.$inferInsert;
 export type Briefing = typeof briefings.$inferSelect;
 export type NewTouchpoint = typeof touchpoints.$inferInsert;
 export type Touchpoint = typeof touchpoints.$inferSelect;
+export type NewEmailPattern = typeof emailPatterns.$inferInsert;
+export type EmailPattern = typeof emailPatterns.$inferSelect;
+export type NewEditDelta = typeof editDeltas.$inferInsert;
+export type EditDelta = typeof editDeltas.$inferSelect;
+export type NewCompetitorIntel = typeof competitorIntel.$inferInsert;
+export type CompetitorIntel = typeof competitorIntel.$inferSelect;
