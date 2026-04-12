@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Workflow A (신규 문의 처리)** - 시장조사 -> 맞춤 이메일 작성 -> 승인 플로우까지 end-to-end 워크플로우
 - [x] **Phase 3: Workflow B (통화 후속 처리)** - 슬랙 통화요약 읽기 -> 액션아이템 추출 -> 후속 이메일 생성
 - [x] **Phase 4: Workflow C (팔로업 자동화)** - 미응답 리마인드 케이던스 자동 실행 및 휴면 관리
-- [ ] **Phase 5: Learning Loop (학습 루프)** - 이메일 패턴 학습, 수정 추적, 크로스셀 감지, 시장정보 축적
+- [x] **Phase 5: Learning Loop (학습 루프)** - 이메일 패턴 학습, 수정 추적, 크로스셀 감지, 시장정보 축적
 
 ## Phase Details
 
@@ -100,12 +100,12 @@ Plans:
 **Plans:** 6 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — DB 스키마 확장 (email_patterns + edit_deltas + competitor_intel) + 쿼리 모듈 3개 + 픽스처
-- [ ] 05-02-PLAN.md — 순수 함수 (email-outcome-classifier + cross-sell-detector + learning-prompt-injector)
-- [ ] 05-03-PLAN.md — Edit Delta 추출기 (Gmail SENT 로드 + AI diff 요약)
-- [ ] 05-04-PLAN.md — 경쟁사 정보 추출기 + 이메일 성과 패턴 트래커
-- [ ] 05-05-PLAN.md — Learning Loop 오케스트레이터 + 학습 보고서 렌더러
-- [ ] 05-06-PLAN.md — CLI 진입점 + D-19 touchpoint metadata 확장
+- [x] 05-01-PLAN.md — DB 스키마 확장 (email_patterns + edit_deltas + competitor_intel) + 쿼리 모듈 3개 + 픽스처
+- [x] 05-02-PLAN.md — 순수 함수 (email-outcome-classifier + cross-sell-detector + learning-prompt-injector)
+- [x] 05-03-PLAN.md — Edit Delta 추출기 (Gmail SENT 로드 + AI diff 요약)
+- [x] 05-04-PLAN.md — 경쟁사 정보 추출기 + 이메일 성과 패턴 트래커
+- [x] 05-05-PLAN.md — Learning Loop 오케스트레이터 + 학습 보고서 렌더러
+- [x] 05-06-PLAN.md — CLI 진입점 + D-19 touchpoint metadata 확장
 
 ## Progress
 
