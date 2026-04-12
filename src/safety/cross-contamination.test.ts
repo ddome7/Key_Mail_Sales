@@ -29,6 +29,8 @@ describe('Cross-Contamination Guard', () => {
         communication_style TEXT,
         stage TEXT DEFAULT 'PROSPECT',
         last_contact_date TEXT,
+        followup_paused INTEGER NOT NULL DEFAULT 0,
+        followup_paused_reason TEXT,
         created_at TEXT DEFAULT (datetime('now')),
         updated_at TEXT DEFAULT (datetime('now'))
       );
