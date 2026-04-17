@@ -309,86 +309,103 @@ def handle_postcall(parent_msg, reply_msg, anthropic_client, gmail_service):
 
 def handle_sales_test(msg, slack, anthropic_client, gmail_service):
     """퍼즐_세일즈테스트 채널 처리 (Growth X-Ray 상담 신청)
-    - 주변 메시지에서 이메일·회사명 추출
-    - Gmail에서 과거 메일 히스토리 검색
-    - 맥락 반영한 메일 초안 생성
+    - 트리거 메시지의 blocks에서 직접 이메일·회사명·담당자 추출
+    - blocks 없을 경우 text에서 폴백 추출
     """
     import re
 
-    channel_id = CHANNEL_IDS['sales_test']
-    msg_ts = float(msg['ts'])
-
-    # 트리거 메시지 전후 메시지에서 이메일·회사명 추출
-    try:
-        response = slack.conversations_history(channel=channel_id, limit=20)
-        all_msgs = response.get('messages', [])
-    except Exception as e:
-        print(f"[세일즈테스트] 채널 조회 오류: {e}")
-        return None
-
-    # 트리거 메시지 기준 전후 10개 메시지 탐색
     email = ''
     company = ''
+    name = ''
     context_text = ''
-    for m in all_msgs:
-        t = m.get('text', '')
-        # 이메일 캡처 메시지에서 추출
-        if 'Growth X-Ray' in t and '이메일 캡처' in t:
-            em = re.search(r'<mailto:([\w.+-]+@[\w.-]+\.[a-zA-Z]{2,})\|', t)
-            if em:
-                email = em.group(1)
-        # 진단 완료 메시지에서 회사명 추출
-        if '1차 진단 완료' in t or '진단 완료' in t:
-            co = re.search(r'진단 완료\]\s*(.+?)\s*[—-]', t)
-            if co:
-                company = co.group(1).strip()
-        context_text += t + '\n'
+
+    # 1순위: blocks 필드에서 직접 추출 (Growth X-Ray 신규 포맷)
+    for block in msg.get('blocks', []):
+        for field in block.get('fields', []):
+            t = field.get('text', '')
+            context_text += t + '\n'
+            if '회사:' in t:
+                company = t.split('\n')[-1].strip()
+            if '이메일:' in t:
+                em = re.search(r'<mailto:([\w.+-]+@[\w.-]+\.[a-zA-Z]{2,})\|', t)
+                if em:
+                    email = em.group(1)
+            if '담당자:' in t:
+                name = t.split('\n')[-1].strip()
+        # 버튼/섹션 텍스트도 컨텍스트에 추가
+        if block.get('text', {}).get('text'):
+            context_text += block['text']['text'] + '\n'
+
+    # 2순위: text 필드 폴백 (구 포맷)
+    if not email:
+        text = msg.get('text', '')
+        context_text += text
+        em = re.search(r'<mailto:([\w.+-]+@[\w.-]+\.[a-zA-Z]{2,})\|', text)
+        if em:
+            email = em.group(1)
+        co = re.search(r'회사명?:\*?\s*\n?\s*(.+?)(?:\s*\*|\s*\n)', text)
+        if co:
+            company = co.group(1).strip()
 
     if not email:
         print(f"[세일즈테스트] 이메일 추출 실패, 스킵")
         return None
 
-    print(f"[세일즈테스트] 광고주: {company} | {email}")
+    print(f"[세일즈테스트] {name} / {company} | {email}")
+
+    # 시장조사
+    print(f"  → 시장조사 중: {company}...")
+    research = research_company(company, email, anthropic_client)
+    print(f"  → 조사 완료")
 
     # 메일 초안 생성
-    from draft_generator import COMPANY_CONTEXT, STYLE_GUIDE, _load_style_profile, _parse_response
+    from draft_generator import COMPANY_CONTEXT, _load_style_profile, _parse_response, _call_gemini
     style_profile = _load_style_profile()
 
     prompt = f"""당신은 퍼즐코퍼레이션 퍼포먼스 마케팅 팀장 이주민님의 이메일 분신입니다.
 {COMPANY_CONTEXT}
-{STYLE_GUIDE}
+
+## 이메일 작성 원칙
+- 인사말은 반드시 "안녕하세요 :) [회사명] [이름]님" 패턴 사용
+- [확인 필요], [날짜 미정] 같은 내부 메모 표현 절대 금지 — 모든 문장은 완성된 자연스러운 문장으로 작성
+- 일정 제안 시 "편하신 일정 알려주시면 제가 맞춰보겠습니다 :)" 형태로 작성 (구체적 날짜 플레이스홀더 금지)
+- 진단 점수, 손실 추정액 등 Growth X-Ray 수치 언급 금지
+- 반드시 마지막 줄은 "-이주민 배상-" 으로 끝낼 것
+- 서명란, 연락처 일체 작성 금지
 
 ## 퍼즐코퍼레이션 학습된 스타일 가이드
 {style_profile}
 
-## 현재 상황
-광고주 회사: {company}
-이메일: {email}
-상담 채널: Growth X-Ray (퍼즐의 그로스 마케팅 진단 서비스)
-슬랙 컨텍스트: {context_text[:300]}
+## 광고주 사전 조사 결과
+{research}
+(위 내용을 메일 본문에 자연스럽게 녹여서, 우리가 이 회사에 대해 관심을 갖고 미리 살펴봤다는 인상을 줄 것. 억지스럽지 않게 1~2문장으로 자연스럽게 언급)
 
-## 메일 작성 규칙
-- Growth X-Ray 상담 신청에 대한 1차 컨텍 메일
-- 이주민 팀장이 직접 챙기겠다는 뉘앙스
-- 미팅 또는 통화 제안 포함
-- 포맷 규칙 (Gmail HTML):
-  - 문장마다 <br>, 단락 구분 <br><br>
-  - <strong style="color:#1a73e8">파란 볼드</strong>: 서비스명, 핵심 수치
-  - ** 기호 절대 금지, 마크다운 금지
-  - 이모지 3개 이하
-- 마지막 줄 반드시 "-이주민 배상-"
+## 광고주 정보
+담당자: {name}
+회사: {company}
+이메일: {email}
+슬랙 컨텍스트: {context_text[:500]}
+
+## 메일 구조
+1. 인사 + Growth X-Ray 상담 신청 감사
+2. 회사 사전 조사 내용 1~2줄 자연스럽게 언급
+3. 퍼즐코퍼레이션 간략 소개 (그로스 마케팅, 주요 서비스, 대표 클라이언트)
+4. 이주민 팀장이 직접 챙기겠다는 내용
+5. 편하신 일정 주시면 맞춰보겠다는 미팅/통화 제안
+6. 맺음말 + "-이주민 배상-"
+
+## 포맷 규칙 (Gmail HTML)
+- 문장마다 <br>, 단락 구분 <br><br>
+- <strong style="color:#1a73e8">파란 볼드</strong>: 퍼즐 서비스명, 대표 수치
+- <strong>검정 볼드</strong>: 대표 클라이언트명
+- 이모지 3개 이하, ** 기호 절대 금지, 마크다운 문법 절대 금지
 
 아래 형식으로만 출력:
 제목: [제목]
 본문:
 [본문]"""
 
-    response = anthropic_client.messages.create(
-        model='claude-sonnet-4-6',
-        max_tokens=2048,
-        messages=[{'role': 'user', 'content': prompt}]
-    )
-    subject, body = _parse_response(response.content[0].text)
+    subject, body = _parse_response(_call_gemini(prompt))
     draft_info = create_gmail_draft(gmail_service, to=email, subject=subject, body=body)
     print(f"  ✓ 세일즈테스트 초안 저장 완료 → {email}")
     return draft_info

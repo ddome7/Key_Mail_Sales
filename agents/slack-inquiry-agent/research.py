@@ -1,12 +1,19 @@
 """
 문의 광고주 시장조사 모듈
 - 회사명 + 이메일 도메인 기반으로 기본 정보 수집
-- Claude로 핵심 정보 요약
+- Gemini로 핵심 정보 요약
 """
 
 import requests
 import re
+import os
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+from google import genai as _genai
+
+load_dotenv()
+_gemini_client = _genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
+GEMINI_MODEL = 'gemini-3-pro-preview'
 
 
 HEADERS = {
@@ -14,7 +21,7 @@ HEADERS = {
 }
 
 
-def research_company(company_name: str, email: str, anthropic_client) -> str:
+def research_company(company_name: str, email: str, anthropic_client=None) -> str:
     """회사 기본 정보 수집 후 요약 반환"""
 
     # 도메인 추출
@@ -71,7 +78,7 @@ def _search_naver(company_name: str) -> str:
         return ''
 
 
-def _summarize(company_name: str, raw_text: str, anthropic_client) -> str:
+def _summarize(company_name: str, raw_text: str, anthropic_client=None) -> str:
     prompt = f"""아래는 '{company_name}'에 대해 수집한 웹 정보입니다.
 
 {raw_text[:4000]}
@@ -81,14 +88,10 @@ def _summarize(company_name: str, raw_text: str, anthropic_client) -> str:
 
 - 회사가 무엇을 하는 곳인지 (주요 사업/서비스)
 - 대략적인 규모나 특징 (있으면)
-- 마케팅 관점에서 주목할 만한 점 (있으면)
+- 마케팅 관점에서 주목할 만한 점 또는 주요 경쟁사 현황 (있으면)
 
 없는 정보는 억지로 만들지 말고 아는 것만 써주세요.
 한국어로 2~3줄 이내."""
 
-    response = anthropic_client.messages.create(
-        model='claude-haiku-4-5-20251001',
-        max_tokens=300,
-        messages=[{'role': 'user', 'content': prompt}]
-    )
-    return response.content[0].text.strip()
+    response = _gemini_client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
+    return response.text.strip()
